@@ -1,17 +1,39 @@
 import random
+
+singles = list(range(1, 21))
+doubles = [2 * i for i in range(1, 21)]
+triples = [3 * i for i in range(1, 21)]
+bulls = [25, 50]
+
+all_dart_scores = singles + doubles + triples + bulls
+
+valid_scores = set()
+
+for d1 in all_dart_scores:
+    for d2 in all_dart_scores:
+        for d3 in all_dart_scores:
+            total = d1 + d2 + d3
+            valid_scores.add(total)
+
+valid_scores.add(0)
+
+valid_scores = sorted(valid_scores)
+
 name = input("What is your name? ")
 print("Welcome to darts 501,", name)
 
 luke_average_ranges = [
-    {"range": (87.0, 91.9), "percent": 0.02, "description": "very rare, poor day"},
-    {"range": (92.0, 94.9), "percent": 0.10, "description": "below par"},
-    {"range": (95.0, 97.9), "percent": 0.22, "description": "solid but beatable"},
-    {"range": (98.0, 100.9), "percent": 0.25, "description": "very common range"},
-    {"range": (101.0, 104.9), "percent": 0.21, "description": "strong performance"},
-    {"range": (105.0, 109.9), "percent": 0.12, "description": "elite level"},
-    {"range": (110.0, 114.9), "percent": 0.06, "description": "exceptional"},
-    {"range": (115.0, 122.9), "percent": 0.02, "description": "career-best zone"}
+    {"range": (87.0, 91.9), "percent": 0.02,},
+    {"range": (92.0, 94.9), "percent": 0.10,},
+    {"range": (95.0, 97.9), "percent": 0.22,},
+    {"range": (98.0, 100.9), "percent": 0.25,},
+    {"range": (101.0, 104.9), "percent": 0.21,},
+    {"range": (105.0, 109.9), "percent": 0.12,},
+    {"range": (110.0, 114.9), "percent": 0.06,},
+    {"range": (115.0, 122.9), "percent": 0.02,}
 ]
+double_finishes = [2 * i for i in range(1, 21)] + [50]
+
 def can_checkout(score):
     possible_checkouts = [
         170, 167, 164, 161, 160, 158, 157, 156, 155, 154, 153, 152, 151, 150,
@@ -26,18 +48,18 @@ def can_checkout(score):
     ]
     return score in possible_checkouts
 luke_checkout_ranges = [
-    {"range": (0.0, 19.9), "percent": 0.02},
-    {"range": (20.0, 29.9), "percent": 0.08},
-    {"range": (30.0, 39.9), "percent": 0.20},
-    {"range": (40.0, 49.9), "percent": 0.30},
-    {"range": (50.0, 59.9), "percent": 0.25},
-    {"range": (60.0, 69.9), "percent": 0.10},
-    {"range": (70.0, 79.9), "percent": 0.04},
-    {"range": (80.0, 99.9), "percent": 0.009},
-    {"range": (100.0, 100.0), "percent": 0.001}
+    {"range": (2.0, 39.0), "percent": random.uniform(0.60, 0.90)},
+    {"range": (40.0, 59.0), "percent": random.uniform(0.60, 0.80)},
+    {"range": (60.0, 89.0), "percent": random.uniform(0.50, 0.70)},
+    {"range": (90.0, 130.0), "percent": random.uniform(0.35, 0.50)},
+    {"range": (130.0, 170.0), "percent": random.uniform(0.10, 0.25)}
 ]
 
-user_choice = input("Choose Heads or Tails: ")
+while True:
+    user_choice = input("Choose Heads or Tails: ").capitalize()
+    if user_choice in ["Heads", "Tails"]:
+        break
+    print("Please enter 'Heads' or 'Tails'.")
 result = random.choice(["Heads", "Tails"])
 print("The coin landed on:", result)
 
@@ -56,37 +78,70 @@ current_player = thrower
 
 while user_score > 0 and luke_score > 0:
     if current_player == name:
-       
         print(f"\n{name}'s score: {user_score}")
-        user_turn = int(input("Enter your score for this turn: "))
-        user_score -= user_turn
+        previous_score = user_score  
 
-        if user_score <= 0:
-            print(f"{name} wins!")
-            break
+        while True:
+            try:
+                user_turn = int(input("Enter your score for this turn: "))
+                if user_turn in valid_scores and user_turn <= user_score:
+                    break
+                else:
+                    print("Invalid score. Enter a realistic darts score that doesn't bust.")
+            except ValueError:
+                print("Please enter a number.")
 
-        current_player = "Luke Littler"  
+        if user_score - user_turn == 0:
+            try:
+                last_dart = int(input("What was your final dart (score)?"))
+                if last_dart in double_finishes:
+                    user_score = 0
+                    print(f"{name} wins with a double finish!")
+                    break
+                else:
+                    print("You must finish on a double! Bust!")
+                    user_score = previous_score
+                    current_player = "Luke Littler"
+                    continue
+            except ValueError:
+                print("Invalid input. Bust!")
+                user_score = previous_score
+                current_player = "Luke Littler"
+                continue
+        else:
+            user_score -= user_turn
+
+            if user_score < 0:
+                print("Bust! Your score resets to previous value.")
+                user_score = previous_score
+
+        current_player = "Luke Littler"
 
     else:
-        
         print(f"\nLuke Littler's score: {luke_score}")
+        previous_luke_score = luke_score  
+
         if luke_score <= 170 and can_checkout(luke_score):
-            
-            if random.random() < 0.4:
-                print("Luke checks out and wins!")
+            if luke_score in double_finishes and random.random() < 0.4:
+                print("Luke checks out with a double finish and wins!")
                 break
             else:
-                print("Luke misses the checkout.")
-                luke_turn = random.randint(60, min(180, luke_score - 1))
+                print("Luke misses the double finish or fails to checkout.")
+                possible_scores = [score for score in valid_scores if 0 < score <= luke_score]
+                luke_turn = random.choice(possible_scores) if possible_scores else 0
                 print(f"Luke scores: {luke_turn}")
                 luke_score -= luke_turn
         else:
-            luke_turn = random.randint(60, min(180, luke_score - 1))
+            possible_scores = [score for score in valid_scores if 0 < score <= luke_score]
+            luke_turn = random.choice(possible_scores) if possible_scores else 0
             print(f"Luke scores: {luke_turn}")
             luke_score -= luke_turn
 
-        if luke_score <= 0:
+        if luke_score < 0:
+            print("Luke busts! Score resets to previous value.")
+            luke_score = previous_luke_score
+        elif luke_score == 0:
             print("Luke Littler wins!")
             break
 
-        current_player = name  
+        current_player = name
