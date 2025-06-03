@@ -149,27 +149,25 @@ while user_score > 0 and luke_score > 0:
                             user_stats["highest_checkout"] = user_score
                         if last_dart < 50:
                             user_stats["doubles_hit"] += 1
-                        # Ask how many darts at the double
+                        
                         while True:
                             darts_at_double = input("How many darts did you throw at the double? (1-3): ")
                             if darts_at_double.lower() == "undo":
                                 print("Undoing last input. Please re-enter your final dart score.")
-                                break  # Breaks to re-enter the double value
+                                break  
                             try:
                                 darts_at_double_int = int(darts_at_double)
                                 if 1 <= darts_at_double_int <= 3:
-                                    # Optionally, store this in stats if you want
-                                    # user_stats.setdefault("darts_at_double", []).append(darts_at_double_int)
+
                                     user_score = 0
                                     print(f"{name} wins with a double finish!")
-                                    break  # Breaks out of darts_at_double loop
+                                    break  
                                 else:
                                     print("Please enter a number between 1 and 3.")
                             except ValueError:
                                 print("Please enter a number between 1 and 3, or 'undo'.")
                         if user_score == 0:
-                            break  # Breaks out of the outer while True loop
-                        # If 'undo' was used, the loop continues to re-enter the double value
+                            break  
                     else:
                         print("You must finish on a double! Bust!")
                         user_score = previous_score
